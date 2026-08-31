@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaxoWave — eDNA Taxonomy & Biodiversity Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/tailwind.css">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="grain"></div>
+<canvas id="bg-canvas"></canvas>
+<div class="caustics"></div>
+<div class="aurora">
+  <div class="aurora-blob b1"></div>
+  <div class="aurora-blob b2"></div>
+  <div class="aurora-blob b3"></div>
+</div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<div class="cursor-dot" id="cursor-dot"></div>
+
+<nav class="nav">
+  <div class="nav-mark"><span class="dot"></span>TaxoWave</div>
+  <div class="nav-links">
+    <a href="#console">Live Run</a>
+    <a href="#overview">Overview</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#map">Map</a>
+    <a href="#taxonomy">Taxonomy</a>
+    <a href="#novel">Novel taxa</a>
+  </div>
+  <div class="nav-status"><span class="pulse"></span>Live pipeline · Arabian Sea</div>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">eDNA · OBIS Arabian Sea · Marine biodiversity</p>
+    <h1 class="hero-title">Every drop of<br><em>seawater</em> carries a census.</h1>
+    <p class="hero-sub">Classifies known marine species straight from environmental DNA — and clusters what no database recognizes instead of throwing it away.</p>
+    <div class="hero-actions">
+      <a href="#console" class="btn btn-primary">Run the pipeline live</a>
+      <a href="#novel" class="btn btn-ghost">See novel taxa found</a>
+    </div>
+  </div>
+  <div class="hero-counters" id="hero-counters">
+    <div class="hcounter"><span class="hval" data-target="0">0</span><span class="hlabel">sequences read</span></div>
+    <div class="hcounter"><span class="hval" data-target="0">0</span><span class="hlabel">sampling stations</span></div>
+    <div class="hcounter"><span class="hval" data-target="0">0</span><span class="hlabel">known taxa matched</span></div>
+    <div class="hcounter accent"><span class="hval" data-target="0">0</span><span class="hlabel">undocumented clusters</span></div>
+  </div>
+  <div class="scroll-cue"><span></span>scroll</div>
+
+  <div class="wave-wrap" aria-hidden="true">
+    <svg class="wave wave-far" viewBox="0 0 2200 380" preserveAspectRatio="none"><path d="M0,180 C300,80 500,260 800,170 C1100,80 1300,240 1600,160 C1800,110 2000,190 2200,150 L2200,380 L0,380 Z"></path></svg>
+    <svg class="wave wave-mid" viewBox="0 0 2200 380" preserveAspectRatio="none"><path d="M0,230 C350,150 550,300 850,220 C1150,140 1400,270 1700,210 C1900,170 2050,230 2200,200 L2200,380 L0,380 Z"></path></svg>
+    <svg class="wave wave-near" viewBox="0 0 2200 380" preserveAspectRatio="none"><path d="M0,280 C400,210 650,330 950,270 C1250,210 1500,310 1800,260 C1950,235 2080,270 2200,250 L2200,380 L0,380 Z"></path></svg>
+  </div>
+</header>
+
+<main>
+
+  <section class="section" id="console">
+    <div class="section-head reveal">
+      <p class="eyebrow">Live Run</p>
+      <h2>Watch the pipeline actually run</h2>
+      <p class="section-lede">Hit run. Ingestion, classification, clustering and scoring — happening live, right now, in your browser.</p>
+    </div>
+
+    <div class="console-panel">
+      <div class="console-top">
+        <div class="console-dots"><span></span><span></span><span></span></div>
+        <div id="pipeline-status" class="status-badge inline-flex items-center gap-2 rounded-full border border-line bg-panel2 px-3 py-1 text-xs text-mist">
+          <span class="status-dot h-1.5 w-1.5 rounded-full bg-dim transition-colors duration-300"></span>
+          <span class="status-label">Idle</span>
+        </div>
+        <button id="run-pipeline-btn" class="inline-flex items-center gap-2 rounded-md bg-cyan px-5 py-2.5 text-sm font-semibold text-abyss transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0">Re-run pipeline</button>
+      </div>
+      <div class="console-log" id="console-log"></div>
+    </div>
+  </section>
+
+  <section class="section" id="overview">
+    <div class="section-head reveal">
+      <p class="eyebrow">01 — Overview</p>
+      <h2>What the water gave up this run</h2>
+      <p class="section-lede">What we recognize, what we don't, and where it came from.</p>
+    </div>
+
+    <div class="stat-grid" id="stat-grid"></div>
+
+    <div class="split-panel">
+      <div class="panel-card" id="composition-panel">
+        <div class="panel-head">
+          <h3>Read composition by phylum</h3>
+          <p>Reads per phylum — unassigned held out as novel</p>
+        </div>
+        <div class="chart-wrap"><canvas id="phylumChart"></canvas></div>
+      </div>
+      <div class="panel-card" id="group-panel">
+        <div class="panel-head">
+          <h3>Organism groups detected</h3>
+          <p>By ASV count — chart continuously revolves</p>
+        </div>
+        <div class="chart-wrap"><canvas id="groupChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="pipeline">
+    <div class="section-head reveal">
+      <p class="eyebrow">02 — Method</p>
+      <h2>Why unmatched isn't discarded</h2>
+      <p class="section-lede">Most tools drop what they can't name. TaxoWave clusters it instead.</p>
+    </div>
+    <ol class="pipeline-steps">
+      <li>
+        <span class="step-num">01</span>
+        <div>
+          <h4>Ingest &amp; clean</h4>
+          <p>Station, depth and read-count metadata attached to every sequence.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">02</span>
+        <div>
+          <h4>Reference match</h4>
+          <p>k-mer similarity against curated Arabian Sea taxa.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">03</span>
+        <div>
+          <h4>Cluster the unmatched</h4>
+          <p>k-mer embeddings + clustering — no name required to group them.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">04</span>
+        <div>
+          <h4>Score biodiversity</h4>
+          <p>Shannon · Simpson · Pielou · Chao1 — per station.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">05</span>
+        <div>
+          <h4>Surface for review</h4>
+          <p>Ranked novel clusters, flagged for a biologist to check.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="section" id="map">
+    <div class="section-head reveal">
+      <p class="eyebrow">03 — Field map</p>
+      <h2>Diversity across the Arabian Sea</h2>
+      <p class="section-lede">Stations sized by sequences recovered, coloured by Shannon diversity.</p>
+    </div>
+    <div class="map-layout">
+      <div class="map-card"><div id="leafletMap"></div></div>
+      <div class="station-list" id="station-list"></div>
+    </div>
+  </section>
+
+  <section class="section alt" id="taxonomy">
+    <div class="section-head reveal">
+      <p class="eyebrow">04 — Known taxa</p>
+      <h2>What we can already name</h2>
+      <p class="section-lede">Highest-confidence matches, ranked by reads.</p>
+    </div>
+    <div class="panel-card wide">
+      <div class="chart-wrap tall"><canvas id="topTaxaChart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="section" id="novel">
+    <div class="section-head reveal">
+      <p class="eyebrow">05 — Signature find</p>
+      <h2>What the water didn't recognize</h2>
+      <p class="section-lede">No match, but not noise. Farther from the core = more novel, bigger = more sequences.</p>
+    </div>
+
+    <div class="novel-layout">
+      <div class="panel-card">
+        <div class="panel-head">
+          <h3>Cluster orbits</h3>
+          <p>Each body is one candidate novel taxon, orbiting the unclassified pool</p>
+        </div>
+        <div class="chart-wrap orbit-wrap"><canvas id="clusterOrbit"></canvas></div>
+      </div>
+      <div class="cluster-cards" id="cluster-cards"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div>
+    <p class="footer-mark">TaxoWave</p>
+    <p>Reference classification + unsupervised novel-taxa discovery, built on the OBIS Arabian Sea eDNA collection. Re-runnable live, right here.</p>
+  </div>
+  <div class="footer-meta">
+    <span>Pipeline: k-mer classification → KMeans clustering</span>
+    <span>Metrics: Shannon · Simpson · Pielou · Chao1</span>
+  </div>
+</footer>
+
+<script src="/static/vendor/chart.umd.js"></script>
+<script src="/static/vendor/leaflet/leaflet.js"></script>
+<link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+<script src="/static/script.js"></script>
+</body>
+</html>
